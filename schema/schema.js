@@ -2,6 +2,7 @@ const graphql = require('graphql')
 const _ = require('lodash')
 const Category = require('../models/Category')
 const Product = require('../models/Product')
+const Counter = require('../models/Visits_Counter.js')
 
 const {
     GraphQLObjectType,
@@ -9,7 +10,8 @@ const {
     GraphQLSchema,
     GraphQLID,
     GraphQLList,
-    GraphQLNonNull
+    GraphQLNonNull,
+    GraphQLInt,
 } = graphql
 
 const ProductObjectType = new GraphQLObjectType({
@@ -37,6 +39,14 @@ const CategoryObjectType = new GraphQLObjectType({
                 return Product.find({parentCategoryId: parent.id})
             }
         }, 
+    })
+})
+
+const CounterObjectType = new GraphQLObjectType({
+    name: 'Counter',
+    fields: () => ({
+        id: { type: GraphQLID },
+        number: { type: GraphQLInt },
     })
 })
 
@@ -73,7 +83,14 @@ const RootQuery = new GraphQLObjectType({
             resolve(parent, args){
                 return Category.find({})
             }
-        }
+        },
+
+        counters: {
+            type: new GraphQLList(CounterObjectType),
+            resolve(parent, args){
+              return Counter.find({})
+            }
+        },
     }
 })
 
@@ -106,6 +123,19 @@ const Mutation = new GraphQLObjectType({
                     parentCategoryId: args.parentCategoryId
                 })
                 return product.save()
+            }
+        },
+
+        createCounter: {
+            type: CounterObjectType,
+            args: {
+                number: { type: new GraphQLNonNull(GraphQLInt) }
+            },
+            async resolve(parent, args){
+                let counter = await new Counter({
+                    number: args.number
+                })
+                return counter.save();
             }
         },
 
