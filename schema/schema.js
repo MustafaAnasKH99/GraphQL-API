@@ -187,6 +187,17 @@ const Mutation = new GraphQLObjectType({
             }
         },
 
+        updateCounter: {
+            type: CounterObjectType,
+            async resolve(parent, args){
+                let updatedCounter = await Counter.findByIdAndUpdate("5da6adf06396f514f50665c9", {$inc: {number: 1}})
+                if (!updatedCounter) {
+                    throw new Error('Error')
+                }
+                return updatedCounter
+            }
+        },
+
         updateCategory: {
             type: CategoryObjectType,
             args: {
