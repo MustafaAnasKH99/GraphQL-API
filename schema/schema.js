@@ -3,6 +3,7 @@ const _ = require('lodash')
 const Category = require('../models/Category')
 const Product = require('../models/Product')
 const Counter = require('../models/Visits_Counter.js')
+const Time = require('../models/Time.js')
 
 const {
     GraphQLObjectType,
@@ -50,6 +51,14 @@ const CounterObjectType = new GraphQLObjectType({
     })
 })
 
+const TimeObjectType = new GraphQLObjectType({
+    name: 'Time',
+    fields: () => ({
+        id: { type: GraphQLID },
+        time: { type: GraphQLString },
+    })
+})
+
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType',
     fields: {
@@ -91,6 +100,13 @@ const RootQuery = new GraphQLObjectType({
               return Counter.find({})
             }
         },
+
+        time: {
+            type: new GraphQLList(TimeObjectType),
+            resolve(parent, args){
+              return Time.find({})
+            }
+        },
     }
 })
 
@@ -126,6 +142,18 @@ const Mutation = new GraphQLObjectType({
             }
         },
 
+        createTime: {
+            type: TimeObjectType,
+            async resolve(parent, args){
+                let timeNow = new Date()
+                let timeString = timeNow.toISOString()
+                let time = await new Time({
+                    time: timeString
+                })
+                return time.save()
+            }
+        },
+
         createCounter: {
             type: CounterObjectType,
             args: {
@@ -136,6 +164,19 @@ const Mutation = new GraphQLObjectType({
                     number: args.number
                 })
                 return counter.save();
+            }
+        },
+
+        getTime: {
+            type: TimeObjectType,
+            args: {
+                number: { type: new GraphQLNonNull(GraphQLString) }
+            },
+            async resolve(parent, args){
+                let time = await new Time({
+                    time: args.time
+                })
+                return time.save();
             }
         },
 
